@@ -1,0 +1,8 @@
+module.exports = {
+    RUN_PORT: 3000,
+    DB_HOST: 'localhost',
+    DB_USER: 'secret',
+    DB_PASS: 'secret',
+    DB_NAME: 'secret'
+}
+

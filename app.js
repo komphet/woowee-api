@@ -5,13 +5,14 @@ const mysql = require('mysql')
 const multer = require('multer')
 const fs = require("fs");
 const WavDecoder = require("wav-decoder");
-
+var assert = require('assert');
+const config = require('./config');
 
 var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'AP17714500',
-    database: 'woowee'
+    host: config.DB_HOST,
+    user: config.DB_USER,
+    password: config.DB_PASS,
+    database: config.DB_NAME
 });
 var upload = multer({dest: 'public/uploads/'})
 
@@ -126,6 +127,6 @@ app.post('/api/voiceinit', upload.single('file'), function (req, res) {
 app.use(express.static('public'))
 
 
-app.listen(3000, function () {
-    console.log('Example app listening on port 3000!')
+app.listen(config.RUN_PORT, function () {
+    console.log('Example app listening on port '+config.RUN_PORT+'!')
 })
