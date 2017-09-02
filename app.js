@@ -89,6 +89,11 @@ var saveFile = function(req,res){
 
             });
 
+            connection.query('UPDATE users SET gender = "'+req.body.gender+'" WHERE fb_id = "'+req.body.fbId+'";', function (err2, results, fields2) {
+                    if (err2) console.error(err2)
+                }
+            )
+
             connection.query('INSERT INTO files VALUES(NULL,"' +
                 req.body.fbId + '","'
                 + fileDetail.fieldname
