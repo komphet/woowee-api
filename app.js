@@ -228,10 +228,10 @@ app.post('/api/liked', function (req, res) {
             if (err) console.error(err)
             var fbId = [];
             rows.forEach(function (value, index) {
-                if(fbId.indexOf(value.receiver) != -1 && value.receiver != req.body.fbId){
+                if(fbId.indexOf(value.receiver) == -1 && value.receiver != req.body.fbId){
                     fbId.push(value.receiver)
                 }
-                if(fbId.indexOf(value.sender) != -1 && value.sender != req.body.fbId){
+                if(fbId.indexOf(value.sender) == -1 && value.sender != req.body.fbId){
                     fbId.push(value.sender)
                 }
             })
