@@ -224,7 +224,7 @@ app.post('/api/refresh', function (req, res) {
 })
 
 app.post('/api/liked', function (req, res) {
-    connection.query('SELECT receiver FROM chats WHERE sender = ' + req.body.fbId + ' GROUP BY receiver LIMIT 0,5;', function (err, rows, fields) {
+    connection.query('SELECT receiver FROM chats WHERE sender = ' + req.body.fbId + ' OR receiver = ' + req.body.fbId + ' GROUP BY receiver LIMIT 0,5;', function (err, rows, fields) {
             if (err) console.error(err)
             var fbId = [];
             rows.forEach(function (value, index) {
