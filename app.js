@@ -224,16 +224,22 @@ app.post('/api/refresh', function (req, res) {
 })
 
 app.post('/api/liked', function (req, res) {
-    connection.query('SELECT receiver FROM chats WHERE sender = ' + req.body.fbId + ' OR receiver = ' + req.body.fbId + ' GROUP BY receiver LIMIT 0,5;', function (err, rows, fields) {
+    connection.query('SELECT receiver,sender FROM chats WHERE sender = ' + req.body.fbId + ' OR receiver = ' + req.body.fbId + ';', function (err, rows, fields) {
             if (err) console.error(err)
             var fbId = [];
             rows.forEach(function (value, index) {
-                fbId.push(value.receiver)
+                if(fbId.indexOf(value.receiver) != -1 && value.receiver != req.body.fbId){
+                    fbId.push(value.receiver)
+                }
+                if(fbId.indexOf(value.sender) != -1 && value.sender != req.body.fbId){
+                    fbId.push(value.sender)
+                }
             })
+
             if (fbId.length == 0) {
                 res.send([])
             } else {
-                connection.query('SELECT * FROM users WHERE fb_id = ' + fbId.join(" OR fb_id = "), function (err2, rows2, fields2) {
+                connection.query('SELECT * FROM users WHERE fb_id = ' + fbId.join(" OR fb_id = ") + " LIMIT 0,5;", function (err2, rows2, fields2) {
                         if (err2) console.error(err2)
                         res.send(rows2)
                     }
