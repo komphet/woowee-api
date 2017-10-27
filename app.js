@@ -128,20 +128,19 @@ var saveFile = function (req, res, action) {
         var fileDetail = req.file;
         const buffer = fs.readFileSync("./" + fileDetail.destination + "/" + fileDetail.filename);
         const decoded = WavDecoder.decode(buffer);
-        var tone = "-", fq;
+        var tone = "-";
+        var fq = "-";
         console.log("decoding...");
         decoded.then(function (bufferDecoded) {
             console.log("Calculating FQ");
             // console.log(bufferDecoded.channelData[0]);
-            fq = Math.floor(autoCorrelate(bufferDecoded.channelData[0], bufferDecoded.sampleRate));
-            console.log("FQ=" + fq);
             connection.query('SELECT * FROM setup WHERE slug = "TONE_RATE";', function (err, rows, fields) {
                 if (rows.length != 0) {
                     toneRate = JSON.parse(rows[0].value);
                 }
-                console.log(toneRate);
                 if (action == "init") {
-
+                    fq = Math.floor(autoCorrelate(bufferDecoded.channelData[0], bufferDecoded.sampleRate));
+                    console.log("FQ=" + fq);
                     var isSelectedTone = false;
                     Object.keys(toneRate[req.body.gender]).forEach(function (key) {
                         var hEst = toneRate[req.body.gender][key][1], lEst = toneRate[req.body.gender][key][0];
