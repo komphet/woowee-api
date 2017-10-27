@@ -129,7 +129,7 @@ var saveFile = function (req, res, action) {
         const buffer = fs.readFileSync("./" + fileDetail.destination + "/" + fileDetail.filename);
         const decoded = WavDecoder.decode(buffer);
         var tone = "-";
-        var fq = "-";
+        var fq = 0;
         console.log("decoding...");
         decoded.then(function (bufferDecoded) {
             console.log("Calculating FQ");
@@ -162,6 +162,10 @@ var saveFile = function (req, res, action) {
                         }
 
                     });
+                }
+
+                if(typeof req.body.fbId == "undefined"){
+                    req.body.fbId = req.body.sender
                 }
 
                 connection.query('INSERT INTO files VALUES(NULL,"' +
