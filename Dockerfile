@@ -3,7 +3,6 @@ FROM node:boron
 # Create app directory
 WORKDIR /usr/src/app
 
-RUN npm install --save-dev babel-cli
 # Install app dependencies
 COPY package.json .
 # For npm@5 or later, copy package-lock.json as well
