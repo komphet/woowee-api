@@ -237,7 +237,7 @@ app.post('/api/getvoice', function (req, res) {
                 connection.query('SELECT * FROM files WHERE id = ' + rows[0].init_voice + ';', function (err2, rows2, fields2) {
                         if (err2) console.error(err2)
                         if (rows2.length != 0) {
-                            filepath = rows2[0].destination + "/" + rows2[0].filename;
+                            var filepath = rows2[0].destination + rows2[0].filename;
                             res.set({'Content-Type': 'audio/wav'});
                             var readStream = fs.createReadStream(filepath);
                             readStream.pipe(res);
