@@ -20,6 +20,19 @@ var upload = multer({dest: 'public/uploads/'})
 var MIN_SAMPLES = 0;  // will be initialized when AudioContext is created.
 var GOOD_ENOUGH_CORRELATION = 0.9; // this is the "bar" for how close a correlation needs to be
 
+var toneRate = {
+    f: {
+        h: [617, null],
+        m: [387, 616],
+        l: [null, 386]
+    },
+    m: {
+        h: [465, null],
+        m: [262, 464],
+        l: [null, 261]
+    },
+};
+
 connection.connect()
 app.use(bodyParser.urlencoded({
     limit: '50mb',
@@ -107,86 +120,81 @@ var saveFile = function (req, res, action) {
 
         const buffer = fs.readFileSync("./" + fileDetail.destination + "/" + fileDetail.filename);
         const decoded = WavDecoder.decode(buffer);
-        var toneRate, tone = "-", fq;
+        var tone = "-", fq;
         decoded.then(function (bufferDecoded) {
             fq = Math.floor(autoCorrelate(bufferDecoded.channelData[1], bufferDecoded.sampleRate));
-            if (action == "init") {
-                toneRate = {
-                    f: {
-                        h: [617, null],
-                        m: [387, 616],
-                        l: [null, 386]
-                    },
-                    m: {
-                        h: [465, null],
-                        m: [262, 464],
-                        l: [null, 261]
-                    },
-                };
-
-                var isSelectedTone = false;
-                Object.keys(toneRate[req.body.gender]).forEach(function (key) {
-                    var hEst = toneRate[req.body.gender][key][1], lEst = toneRate[req.body.gender][key][0];
-                    if (hEst != null && lEst != null && !isSelectedTone) {
-                        if (fq <= hEst && fq >= lEst) {
-                            tone = key;
-                            isSelectedTone = true;
-                        }
-                    } else if (hEst != null && !isSelectedTone) {
-                        if (fq <= hEst) {
-                            tone = key;
-                            isSelectedTone = true;
-                        }
-                    } else if (lEst != null && !isSelectedTone) {
-                        if (fq >= lEst) {
-                            tone = key;
-                            isSelectedTone = true;
-                        }
-                    }
-
-                });
-            }
-
-            connection.query('INSERT INTO files VALUES(NULL,"' +
-                req.body.fbId + '","'
-                + fileDetail.fieldname
-                + '","'
-                + fileDetail.originalname
-                + '","'
-                + fileDetail.encoding
-                + '","'
-                + fileDetail.mimetype
-                + '","'
-                + fileDetail.destination
-                + '","'
-                + fileDetail.filename
-                + '","'
-                + fileDetail.path
-                + '","'
-                + fileDetail.size
-                + '","' + fq + '");', function (err2, results, fields2) {
-                    if (err2) console.error(err2)
-                    fileDetail.tone = tone;
-                    fileDetail.fq = fq;
-                    fileDetail.id = results.insertId;
-                    if (action == "init") {
-                        connection.query('UPDATE users SET gender = "' + req.body.gender + '", init_voice = "' + fileDetail.id + '", tone = "' + tone + '" WHERE fb_id = "' + req.body.fbId + '";', function (err2, results, fields2) {
-                                if (err2) console.error(err2)
-                            }
-                        )
-                    } else if (action == "chat") {
-                        connection.query('UPDATE chats SET is_new = 0 WHERE sender = "' + req.body.sender + '" AND receiver = "' + req.body.receiver + '";', function (err2, results, fields2) {
-                                if (err2) console.error(err2)
-                                connection.query('INSERT INTO chats VALUES(NULL,' + req.body.sender + ',' + req.body.receiver + ',1,' + fileDetail.id + ',NULL);', function (err2, results, fields2) {
-                                        if (err2) console.error(err2)
-                                    }
-                                )
-                            }
-                        )
-                    }
-                    return res.send(fileDetail)
+            connection.query('SELECT * FROM setup WHERE slug = "TONE_RATE";', function (err, rows, fields) {
+                if (rows.length != 0) {
+                    toneRate = JSON.parse(rows[0].value);
                 }
-            )
+                console.log(toneRate);
+                if (action == "init") {
+
+                    var isSelectedTone = false;
+                    Object.keys(toneRate[req.body.gender]).forEach(function (key) {
+                        var hEst = toneRate[req.body.gender][key][1], lEst = toneRate[req.body.gender][key][0];
+                        if (hEst != null && lEst != null && !isSelectedTone) {
+                            if (fq <= hEst && fq >= lEst) {
+                                tone = key;
+                                isSelectedTone = true;
+                            }
+                        } else if (hEst != null && !isSelectedTone) {
+                            if (fq <= hEst) {
+                                tone = key;
+                                isSelectedTone = true;
+                            }
+                        } else if (lEst != null && !isSelectedTone) {
+                            if (fq >= lEst) {
+                                tone = key;
+                                isSelectedTone = true;
+                            }
+                        }
+
+                    });
+                }
+
+                connection.query('INSERT INTO files VALUES(NULL,"' +
+                    req.body.fbId + '","'
+                    + fileDetail.fieldname
+                    + '","'
+                    + fileDetail.originalname
+                    + '","'
+                    + fileDetail.encoding
+                    + '","'
+                    + fileDetail.mimetype
+                    + '","'
+                    + fileDetail.destination
+                    + '","'
+                    + fileDetail.filename
+                    + '","'
+                    + fileDetail.path
+                    + '","'
+                    + fileDetail.size
+                    + '","' + fq + '");', function (err2, results, fields2) {
+                        if (err2) console.error(err2)
+                        fileDetail.tone = tone;
+                        fileDetail.fq = fq;
+                        fileDetail.id = results.insertId;
+                        if (action == "init") {
+                            connection.query('UPDATE users SET gender = "' + req.body.gender + '", init_voice = "' + fileDetail.id + '", tone = "' + tone + '" WHERE fb_id = "' + req.body.fbId + '";', function (err2, results, fields2) {
+                                    if (err2) console.error(err2)
+                                }
+                            )
+                        } else if (action == "chat") {
+                            connection.query('UPDATE chats SET is_new = 0 WHERE sender = "' + req.body.sender + '" AND receiver = "' + req.body.receiver + '";', function (err2, results, fields2) {
+                                    if (err2) console.error(err2)
+                                    connection.query('INSERT INTO chats VALUES(NULL,' + req.body.sender + ',' + req.body.receiver + ',1,' + fileDetail.id + ',NULL);', function (err2, results, fields2) {
+                                            if (err2) console.error(err2)
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                        return res.send(fileDetail)
+                    }
+                )
+            })
+
         })
     }
     else {
@@ -304,6 +312,16 @@ app.post('/api/liked', function (req, res) {
             }
         }
     )
+})
+
+app.get('/api/tonerate', function (req, res) {
+    connection.query('SELECT * FROM setup WHERE slug = "TONE_RATE";', function (err, rows, fields) {
+        if (rows.length == 0) {
+            res.send(JSON.stringify({value: toneRate}));
+        } else {
+            res.send(rows[0]);
+        }
+    })
 })
 
 
