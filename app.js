@@ -75,21 +75,21 @@ function autoCorrelate(buf, sampleRate) {
     for (var i = 0; i < SIZE; i++) {
         var val = buf[i];
         rms += val * val;
-        console.log(i, rms);
+        // console.log(i, rms);
     }
     rms = Math.sqrt(rms / SIZE);
-    console.log(rms);
+    // console.log(rms);
     if (rms < 0.01) // not enough signal
         return -1;
 
     var lastCorrelation = 1;
     for (var offset = MIN_SAMPLES; offset < MAX_SAMPLES; offset++) {
         var correlation = 0;
-        console.log("Offset ", offset);
+        // console.log("Offset ", offset);
 
         for (var i = 0; i < MAX_SAMPLES; i++) {
             correlation += Math.abs((buf[i]) - (buf[i + offset]));
-            console.log("MAX_SAMPLES  ", i, correlation);
+            // console.log("MAX_SAMPLES  ", i, correlation);
 
         }
         correlation = 1 - (correlation / MAX_SAMPLES);
