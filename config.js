@@ -1,9 +1,9 @@
 module.exports = {
     RUN_PORT: 3000,
 
-    DB_HOST: 'localhost',
-    DB_USER: 'root',
-    DB_PASS: 'AP17714500',
+    DB_HOST: 'mysql',
+    DB_USER: 'woowee',
+    DB_PASS: 'secret',
     DB_NAME: 'woowee'
 }
 

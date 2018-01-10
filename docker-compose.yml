@@ -1,0 +1,47 @@
+version: "2"
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+
+  woowee:
+    image: komphet/woowee-api
+    container_name: woowee-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - VIRTUAL_HOST=woowee.komphet.me
+    links:
+      - mysql
+
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: always
+    command: --sql-mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+    volumes:
+      - ./build/mysql:/docker-entrypoint-initdb.d
+      - ./tmp/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "woowee"
+      MYSQL_USER: "woowee"
+      MYSQL_PASSWORD: "secret"
+      MYSQL_ROOT_PASSWORD: "secret"
+    ports:
+      - "3306:3306"
+     
+  myadmin:
+    container_name: myadmin
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql:db
+    ports:
+      - 8080:80
+
